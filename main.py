@@ -6,6 +6,9 @@ vulnerability scanner adapters. It serves as the entry point for the web service
 that provides REST API endpoints for vulnerability scanning.
 """
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from fastapi import FastAPI
 from app.api.routes import router
 from app.adapters.registry import registry
@@ -13,6 +16,9 @@ from app.adapters.builtin_adapter import BuiltinAdapter
 from app.adapters.nuclei_adapter import NucleiAdapter
 from app.adapters.nikto_adapter import NiktoAdapter
 from app.adapters.mock_adapter import MockAdapter
+from app.adapters.shodan_adapter import ShodanAdapter
+from app.adapters.virustotal_adapter import VirusTotalAdapter
+from app.adapters.zap_adapter import ZAPAdapter
 
 # Create the main FastAPI application instance
 # This sets up the web server with basic metadata
@@ -30,6 +36,9 @@ registry.register(BuiltinAdapter())  # Basic placeholder adapter
 registry.register(NucleiAdapter())   # Nuclei vulnerability scanner
 registry.register(NiktoAdapter())    # Nikto web server scanner
 registry.register(MockAdapter())     # Mock adapter for testing
+registry.register(ShodanAdapter())   # Shodan passive reconnaissance
+registry.register(VirusTotalAdapter())  # VirusTotal URL reputation
+registry.register(ZAPAdapter())     # OWASP ZAP active scanner
 
 # ── mount routes ──────────────────────────────────────────────────────────────
 # Include the API routes from the routes module

@@ -6,8 +6,12 @@ and retrieved by name. It allows the application to dynamically select which
 scanner to use for a given scan request.
 """
 
+from dotenv import load_dotenv
 from typing import Dict
 from app.adapters.base import BaseAdapter
+
+# Load environment variables from local .env file on startup too
+load_dotenv()
 
 
 class AdapterRegistry:

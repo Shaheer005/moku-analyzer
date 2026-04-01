@@ -74,3 +74,12 @@ async def health():
         "status":   "ok",
         "adapters": registry.available(),  # List of registered scanner adapters
     }
+
+
+@router.get("/adapters")
+async def list_adapters():
+    """List all registered scanner adapters."""
+    return {
+        "status": "ok",
+        "adapters": registry.available(),
+    }
