@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+nuclei.zip
+download.ps1
+tmp_verify_routes.py
+
