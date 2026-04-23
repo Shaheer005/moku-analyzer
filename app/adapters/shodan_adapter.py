@@ -18,7 +18,7 @@ class ShodanAdapter(BaseAdapter):
     name = "shodan"
     description = "Shodan — passive reconnaissance using Shodan's internet scan database"
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """Scan a URL by resolving hostname and querying Shodan host info."""
         api_key = os.getenv("SHODAN_API_KEY")
         if not api_key:
@@ -84,6 +84,6 @@ class ShodanAdapter(BaseAdapter):
 
         return vulns
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """Shodan works on URLs only."""
         return []

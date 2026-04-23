@@ -12,10 +12,10 @@ class DummyAdapter(BaseAdapter):
     name = "dummy"
     description = "A dummy adapter"
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         return []
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         return []
 
 
@@ -24,10 +24,10 @@ class AnotherAdapter(BaseAdapter):
     name = "another"
     description = "Another dummy adapter"
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         return []
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         return []
 
 
@@ -83,9 +83,9 @@ class TestRegistry:
         class AnotherDummy(BaseAdapter):
             name = "dummy"
             description = "Modified dummy"
-            def scan_url(self, url: str) -> List[Vulnerability]:
+            def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
                 return []
-            def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+            def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
                 return []
         
         adapter2 = AnotherDummy()

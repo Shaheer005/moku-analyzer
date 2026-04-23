@@ -41,6 +41,7 @@ class ScanRequest(BaseModel):
     html:    Optional[str] = None   # HTML content when method = "html"
     url:     Optional[str] = None   # URL to scan when method = "url"
     adapter: Optional[str] = None   # Scanner adapter to use (default: builtin)
+    cookies: Optional[Dict[str, str]] = None  # Cookies for authenticated requests
 
 
 # ── matches Go's models.Vulnerability ────────────────────────────────────────

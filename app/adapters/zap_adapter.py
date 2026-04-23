@@ -18,7 +18,7 @@ class ZAPAdapter(BaseAdapter):
     name = "zap"
     description = "OWASP ZAP — active web vulnerability scanner"
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """Run zap.sh quick scan and parse results."""
         output_file = "zap_results.json"
 
@@ -78,6 +78,6 @@ class ZAPAdapter(BaseAdapter):
 
         return vulns
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """ZAP works on live URLs only."""
         return []

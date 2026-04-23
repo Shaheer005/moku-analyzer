@@ -12,7 +12,6 @@ from app.plugins.plugin_manager import plugin_manager
 from app.plugins.xss_plugin import XSSPlugin
 from app.plugins.sqli_plugin import SQLiPlugin
 from app.plugins.csrf_plugin import CSRFPlugin
-from app.core.executor import executor
 
 
 class BuiltinAdapter(BaseAdapter):
@@ -22,7 +21,7 @@ class BuiltinAdapter(BaseAdapter):
     # plugin instances for the executor
     _plugins = [XSSPlugin(), SQLiPlugin(), CSRFPlugin()]
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """
         Full dynamic scan against a live URL.
         Extracts parameters from URL, runs all plugins.
@@ -38,17 +37,18 @@ class BuiltinAdapter(BaseAdapter):
             type=ScanUnitType.URL,
             url=clean_url,
             params=params,
+            cookies=cookies or {},
         )
 
         return self._run_scan(scan_unit)
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """
         Scan raw HTML — limited dynamic testing without a live URL.
         Falls back to scanning the source_url if provided.
         """
         if source_url:
-            return self.scan_url(source_url)
+            return self.scan_url(source_url, cookies)
         return []
 
     def _run_scan(self, scan_unit: ScanUnit) -> List[Vulnerability]:
@@ -63,8 +63,12 @@ class BuiltinAdapter(BaseAdapter):
         if not test_cases:
             return []
 
+        # Create fresh executor instance for this scan (ensures clean session/cookies)
+        from app.core.executor import Executor
+        scan_executor = Executor()
+
         # execute tests and collect findings
-        findings = executor.run(
+        findings = scan_executor.run(
             scan_unit=scan_unit,
             test_cases=test_cases,
             plugins=self._plugins,

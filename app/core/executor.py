@@ -99,9 +99,15 @@ class Executor:
     def _fetch_baseline(self, scan_unit: ScanUnit) -> str:
         """Fetch the page without any payload — used for comparison."""
         try:
+            # Set cookies on session if provided
+            if scan_unit.cookies:
+                for key, value in scan_unit.cookies.items():
+                    self._session.cookies.set(key, value)
+            
             resp = self._session.get(
                 scan_unit.url,
                 params=scan_unit.params,
+                headers=scan_unit.headers,
                 timeout=10,
             )
             return resp.text
@@ -119,6 +125,11 @@ class Executor:
         Returns (response_body, response_headers) or (None, {}) on failure.
         """
         try:
+            # Set cookies on session if provided
+            if scan_unit.cookies:
+                for key, value in scan_unit.cookies.items():
+                    self._session.cookies.set(key, value)
+            
             # build params with payload injected
             params = dict(scan_unit.params)
             params[test_case.target_name] = test_case.payload

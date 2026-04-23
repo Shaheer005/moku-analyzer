@@ -27,23 +27,23 @@ class BaseAdapter(ABC):
     name: str = "base"
 
     @abstractmethod
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """Run a scan against a live URL. Return found vulnerabilities."""
         ...
 
     @abstractmethod
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """Run a scan against raw HTML content. Return found vulnerabilities."""
         ...
 
-    def scan(self, method: ScanMethod, html: str = None, url: str = None) -> List[Vulnerability]:
+    def scan(self, method: ScanMethod, html: str = None, url: str = None, cookies: dict = None) -> List[Vulnerability]:
         """
         Dispatch to the right scan method based on the request.
         Adapters don't need to override this — just implement scan_url / scan_html.
         """
         if method == ScanMethod.URL and url:
-            return self.scan_url(url)
+            return self.scan_url(url, cookies)
         elif method == ScanMethod.HTML and html:
-            return self.scan_html(html, source_url=url or "")
+            return self.scan_html(html, source_url=url or "", cookies=cookies)
         else:
             raise ValueError(f"Invalid scan method or missing payload: method={method}, url={url}, html={'<set>' if html else None}")

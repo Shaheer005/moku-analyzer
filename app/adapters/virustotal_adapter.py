@@ -18,7 +18,7 @@ class VirusTotalAdapter(BaseAdapter):
     name = "virustotal"
     description = "VirusTotal — checks URL/domain against 90+ security vendor databases"
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """Submit URL and parse analysis from VirusTotal API."""
         api_key = os.getenv("VIRUSTOTAL_API_KEY")
         if not api_key:
@@ -115,6 +115,6 @@ class VirusTotalAdapter(BaseAdapter):
 
         return vulnerabilities
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """VirusTotal works on URLs only."""
         return []

@@ -40,6 +40,7 @@ def run_scan_job(job_id: str, request: ScanRequest) -> None:
             method=request.method,
             html=request.html,
             url=request.url,
+            cookies=request.cookies,
         )
 
         # Step 4: Store successful results and mark as DONE

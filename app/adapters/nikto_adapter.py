@@ -19,7 +19,7 @@ class NiktoAdapter(BaseAdapter):
     """
     name = "nikto"  # Registry name for this adapter
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """
         Scan a URL using Nikto.
         """
@@ -39,7 +39,7 @@ class NiktoAdapter(BaseAdapter):
                 "nikto binary not found. Make sure nikto is installed and in PATH."
             )
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """
         Nikto works on live URLs, not raw HTML.
         If a source_url is available we fall back to scanning that URL.

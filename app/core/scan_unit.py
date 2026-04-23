@@ -31,6 +31,7 @@ class ScanUnit(BaseModel):
     method:        str = "GET"
     params:        Dict[str, str] = {}   # query/form params
     headers:       Dict[str, str] = {}
+    cookies:       Dict[str, str] = {}   # NEW — for authenticated requests
     snapshot_id:   Optional[str] = None  # from moku tracker
     auth_required: bool = False
 

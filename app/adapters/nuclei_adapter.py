@@ -26,7 +26,7 @@ class NucleiAdapter(BaseAdapter):
     """Adapter for the Nuclei vulnerability scanner."""
     name = "nuclei"  # Registry name for this adapter
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """Run nuclei against a live URL and return parsed vulnerabilities."""
         try:
             # Execute nuclei as a subprocess with timeout
@@ -49,7 +49,7 @@ class NucleiAdapter(BaseAdapter):
 
         return self._parse(result.stdout)
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """
         Nuclei works on live URLs, not raw HTML.
         If a source_url is available we fall back to scanning that URL.

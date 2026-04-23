@@ -16,7 +16,7 @@ class MockAdapter(BaseAdapter):
     """Mock adapter that returns fixed vulnerability results for testing."""
     name = "mock"  # Registry name for this adapter
 
-    def scan_url(self, url: str) -> List[Vulnerability]:
+    def scan_url(self, url: str, cookies: dict = None) -> List[Vulnerability]:
         """Return mock vulnerabilities for URL scanning."""
         return [
             Vulnerability(
@@ -40,7 +40,7 @@ class MockAdapter(BaseAdapter):
             ),
         ]
 
-    def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
+    def scan_html(self, html: str, source_url: str = "", cookies: dict = None) -> List[Vulnerability]:
         """Return mock vulnerabilities for HTML content scanning."""
         # Use source_url if provided, otherwise location is unknown
         location = source_url or ""
