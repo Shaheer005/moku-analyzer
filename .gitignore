@@ -5,4 +5,5 @@ __pycache__/
 nuclei.zip
 download.ps1
 tmp_verify_routes.py
+evidence/
 

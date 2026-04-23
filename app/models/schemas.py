@@ -9,7 +9,6 @@ and match the expected format for communication with the Go backend service.
 from pydantic import BaseModel, Field
 from typing import Optional, List, Any, Dict
 from enum import Enum
-import uuid
 
 
 class ScanMethod(str, Enum):
