@@ -1,4 +1,0 @@
-Severity,Vulnerability Type,Description,Evidence,Location,Confidence
-HIGH,xss-reflected,Reflected XSS found in search parameter,?q=<script>alert(1)</script>,https://www.dsu.edu.pk,N/A
-MEDIUM,missing-hsts,HTTP Strict Transport Security header not set,,https://www.dsu.edu.pk,N/A
-INFO,server-version-disclosure,Server version exposed in response headers,,https://www.dsu.edu.pk,N/A
