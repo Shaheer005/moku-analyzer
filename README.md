@@ -1,198 +1,203 @@
 # moku-analyzer
 
-A vulnerability analyzer service built for the [moku](https://github.com/Raysh454/moku) platform. This service receives scan requests from moku's Go client, runs vulnerability analysis using a pluggable adapter system, and returns structured results.
+A production-ready vulnerability analyzer service built for the moku platform. This service receives scan requests from moku's Go client, analyzes them using a pluggable adapter system, and returns structured vulnerability findings.
 
-Built with Python + FastAPI as part of a Final Year Project at DHA Suffa University.
-
----
+Built with Python + FastAPI + SQLite as part of a Final Year Project at DHA Suffa University.
 
 ## What This Does
 
 Moku crawls websites and monitors for changes. When it finds a page, it sends it here for vulnerability analysis. This service:
 
-1. Receives a scan request (URL or HTML) from moku
-2. Runs it through a selected vulnerability scanner (adapter)
-3. Returns structured vulnerability findings back to moku
+- Receives a scan request (URL or HTML) from moku
+- Runs it through a selected vulnerability scanner (adapter)
+- Saves all results to SQLite database
+- Generates professional reports (CSV auto-download, TXT optional)
+- Returns structured vulnerability findings back to moku
 
 The key design is the **Adapter Pattern** — any vulnerability scanner can be plugged in without changing the core system.
-
----
 
 ## Architecture
 
 ```
 moku (Go client)
-      │
-      ▼  HTTP
-┌─────────────────────────────────┐
-│         moku-analyzer           │
-│         (this service)          │
-│                                 │
-│  POST /scan                     │
-│  GET  /scan/{id}                │
-│  GET  /health                   │
-│  GET  /adapters                 │
-│                                 │
-│  ┌──────────────────────────┐   │
-│  │     Adapter Registry     │   │
-│  │  builtin | nuclei | nikto│   │
-│  │  shodan  | virustotal    │   │
-│  │  zap     | mock          │   │
-│  └──────────────────────────┘   │
-└─────────────────────────────────┘
+│
+▼  HTTP
+┌─────────────────────────────────────────┐
+│          moku-analyzer                  │
+│         (FastAPI Service)               │
+│                                         │
+│  POST /scan (submit job)                │
+│  GET  /scan/{id} (poll results)         │
+│  GET  /scan/{id}/download (get report)  │
+│  GET  /health (status check)            │
+│  GET  /adapters (list scanners)         │
+│  GET  /scans (history)                  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │    Adapter System + Plugins       │  │
+│  │                                   │  │
+│  │  ┌─ Adapters (external tools)    │  │
+│  │  │  builtin | nuclei | nikto     │  │
+│  │  │  shodan  | virustotal | zap   │  │
+│  │  │                               │  │
+│  │  └─ Plugins (dynamic analysis)   │  │
+│  │     xss | sqli | csrf            │  │
+│  └───────────────────────────────────┘  │
+│                                         │
+│  ┌───────────────────────────────────┐  │
+│  │    SQLite Database                │  │
+│  │  • Scan history (permanent)       │  │
+│  │  • Vulnerability findings         │  │
+│  │  • Evidence blobs (SHA256)        │  │
+│  └───────────────────────────────────┘  │
+└─────────────────────────────────────────┘
+│
+├─→ Nuclei CLI
+├─→ Nikto CLI
+├─→ OWASP ZAP
+├─→ Shodan API
+├─→ VirusTotal API
+└─→ Built-in Dynamic Analyzer (Phase 2)
 ```
 
----
+## Key Features
+
+✅ **Async Job Engine** — Submit scans and poll for results, never block  
+✅ **6 Vulnerability Scanners** — Nuclei, Nikto, Shodan, VirusTotal, ZAP, built-in  
+✅ **3 Dynamic Plugins** — XSS detection, SQL injection detection, CSRF detection  
+✅ **SQLite Database** — Permanent scan history, query anytime  
+✅ **Professional Reports** — CSV (auto) + TXT (optional), auto-download  
+✅ **Sequential Scan IDs** — scan_00001, scan_00002, etc.  
+✅ **Authenticated Scanning** — Support for cookies, API tokens, session auth  
+✅ **CLI Tool** — Simple one-command scanner from terminal  
+✅ **44 Passing Tests** — Full test coverage  
 
 ## Project Structure
 
 ```
 moku-analyzer/
-├── main.py                        # FastAPI app entry point, adapter registration
-├── run.py                         # Server startup script
+├── main.py                        # FastAPI app entry point
+├── run.py                         # Server startup
+├── scan.py                        # CLI scanner tool
 ├── requirements.txt               # Python dependencies
-├── .env                           # API keys (never committed to Git)
-├── .gitignore
+├── moku_analyzer.db               # SQLite database
+├── README.md                      # This file
 │
 ├── app/
 │   ├── api/
-│   │   └── routes.py              # API endpoints (POST /scan, GET /scan/{id}, etc.)
+│   │   └── routes.py              # REST API endpoints
 │   │
 │   ├── core/
-│   │   ├── job_store.py           # Thread-safe in-memory job storage
-│   │   └── runner.py              # Background job executor
+│   │   ├── database.py            # SQLite manager
+│   │   ├── job_store.py           # Job queue
+│   │   ├── runner.py              # Scan executor
+│   │   ├── executor.py            # Test payload sender
+│   │   ├── report_generator.py    # CSV/TXT report generation
+│   │   └── evidence_store.py      # SHA256 evidence storage
 │   │
 │   ├── models/
-│   │   └── schemas.py             # Pydantic models (ScanRequest, ScanResult, Vulnerability)
+│   │   └── schemas.py             # Pydantic data models
 │   │
-│   └── adapters/
-│       ├── base.py                # Abstract BaseAdapter class
-│       ├── registry.py            # Adapter registry
-│       ├── builtin_adapter.py     # Moku's own analyzer (Phase 2)
-│       ├── nuclei_adapter.py      # Nuclei CLI wrapper
-│       ├── nikto_adapter.py       # Nikto CLI wrapper
-│       ├── shodan_adapter.py      # Shodan API integration
-│       ├── virustotal_adapter.py  # VirusTotal API integration
-│       ├── zap_adapter.py         # OWASP ZAP wrapper
-│       └── mock_adapter.py        # Mock adapter for testing
+│   ├── adapters/
+│   │   ├── base.py                # Abstract adapter interface
+│   │   ├── registry.py            # Adapter registry
+│   │   ├── builtin_adapter.py     # Dynamic analyzer (Phase 2)
+│   │   ├── nuclei_adapter.py      # Nuclei CLI wrapper
+│   │   ├── nikto_adapter.py       # Nikto CLI wrapper
+│   │   ├── shodan_adapter.py      # Shodan API client
+│   │   ├── virustotal_adapter.py  # VirusTotal API client
+│   │   └── zap_adapter.py         # OWASP ZAP wrapper
+│   │
+│   └── plugins/
+│       ├── base_plugin.py         # Abstract plugin interface
+│       ├── xss_plugin.py          # XSS detection
+│       ├── sqli_plugin.py         # SQL injection detection
+│       ├── csrf_plugin.py         # CSRF detection
+│       └── plugin_manager.py      # Plugin orchestrator
 │
-└── tests/                         # Test scripts used during development
+└── tests/                         # Test suite (44 tests)
 ```
-
----
-
-## Requirements
-
-- Python 3.11+
-- pip
-- For Nuclei adapter: [Nuclei](https://github.com/projectdiscovery/nuclei/releases) installed and in PATH
-- For Nikto adapter: [Nikto](https://github.com/sullo/nikto) installed and in PATH
-- For ZAP adapter: [OWASP ZAP](https://www.zaproxy.org/download/) installed
-- For Shodan adapter: Free Shodan API key from [shodan.io](https://shodan.io)
-- For VirusTotal adapter: Free VirusTotal API key from [virustotal.com](https://virustotal.com)
-
----
 
 ## Setup & Installation
 
-**Step 1 — Clone the repo:**
+### Requirements
+
+- Python 3.11+
+- pip
+- (Optional) Nuclei, Nikto, OWASP ZAP installed for those adapters
+- (Optional) Shodan API key from [shodan.io](https://shodan.io)
+- (Optional) VirusTotal API key from [virustotal.com](https://virustotal.com)
+
+### Installation
+
+**Step 1 — Clone:**
 ```bash
 git clone https://github.com/Shaheer005/moku-analyzer.git
 cd moku-analyzer
 ```
 
-**Step 2 — Create a virtual environment:**
+**Step 2 — Virtual environment:**
 ```bash
 python -m venv .venv
+.venv\Scripts\activate          # Windows
+source .venv/bin/activate       # Mac/Linux
 ```
 
-**Step 3 — Activate the virtual environment:**
-
-Windows:
-```bash
-.venv\Scripts\activate
-```
-
-Mac/Linux:
-```bash
-source .venv/bin/activate
-```
-
-**Step 4 — Install dependencies:**
+**Step 3 — Install dependencies:**
 ```bash
 pip install -r requirements.txt
 ```
 
-**Step 5 — Create your `.env` file:**
-```bash
-cp .env.example .env
+**Step 4 — Create .env file (project root):**
 ```
-Or create `.env` manually in the project root:
-```
-SHODAN_API_KEY=your_shodan_key_here
-VIRUSTOTAL_API_KEY=your_virustotal_key_here
+SHODAN_API_KEY=your_key_here
+VIRUSTOTAL_API_KEY=your_key_here
 ```
 
-**Step 6 — Run the server:**
+**Step 5 — Run the server:**
 ```bash
 python run.py
 ```
 
-Server starts at `http://127.0.0.1:8080`
+Server starts at http://127.0.0.1:8080
 
----
+## Usage
 
-## API Endpoints
+### From FastAPI Swagger UI
 
-### GET /health
-Check if the service is running and see registered adapters.
+Open http://127.0.0.1:8080/docs in your browser.
 
+### From CLI Tool
+
+**Run a scan:**
 ```bash
-curl http://127.0.0.1:8080/health
+python scan.py https://target.com
+# CSV report auto-downloads to Downloads folder
+# Asked if you want TXT as well
 ```
 
-Response:
-```json
-{
-  "status": "ok",
-  "adapters": ["builtin", "nuclei", "nikto", "shodan", "virustotal", "zap", "mock"]
-}
-```
-
----
-
-### GET /adapters
-Get list of available vulnerability analyzers to show in UI.
-
+**View scan history:**
 ```bash
-curl http://127.0.0.1:8080/adapters
+python scan.py --history
+# Shows all past scans with IDs
 ```
 
-Response:
-```json
-{
-  "adapters": [
-    {"name": "builtin", "description": "Moku built-in vulnerability analyzer"},
-    {"name": "nuclei", "description": "Template-based scanner by ProjectDiscovery"},
-    {"name": "shodan", "description": "Passive recon using Shodan internet scan database"},
-    {"name": "virustotal", "description": "URL reputation check against 90+ security vendors"}
-  ]
-}
-```
-
----
-
-### POST /scan
-Submit a new scan job. Returns a `job_id` immediately — the scan runs in the background.
-
+**Download old scan report:**
 ```bash
-curl -X POST http://127.0.0.1:8080/scan \
-  -H "Content-Type: application/json" \
-  -d '{"method":"url","url":"http://target.com","adapter":"nuclei"}'
+python scan.py --download scan_00001 csv
+python scan.py --download scan_00001 txt
 ```
 
-Request body:
-```json
+**Export all scans:**
+```bash
+python scan.py --export-all
+```
+
+### From moku Go Client
+
+**Submit scan:**
+```bash
+POST http://moku-analyzer-url/scan
 {
   "method": "url",
   "url": "http://target.com",
@@ -200,136 +205,124 @@ Request body:
 }
 ```
 
-| Field | Required | Description |
-|---|---|---|
-| method | yes | `"url"` or `"html"` |
-| url | if method=url | Target URL to scan |
-| html | if method=html | Raw HTML string to scan |
-| adapter | no | Which scanner to use (default: `"builtin"`) |
-
-Response:
-```json
-{
-  "job_id": "e37f2592-0042-4279-9329-c084e6ec9377"
-}
-```
-
----
-
-### GET /scan/{job_id}
-Poll for scan results. Keep calling until `status` is `done` or `failed`.
-
+**Poll results:**
 ```bash
-curl http://127.0.0.1:8080/scan/e37f2592-0042-4279-9329-c084e6ec9377
+GET http://moku-analyzer-url/scan/{job_id}
+# Returns: {status, vulnerabilities[]}
 ```
 
-Response when done:
-```json
-{
-  "id": "e37f2592-0042-4279-9329-c084e6ec9377",
-  "status": "done",
-  "vulnerabilities": [
-    {
-      "type": "CVE-2023-48795",
-      "severity": "critical",
-      "description": "Terrapin SSH vulnerability",
-      "evidence": "scanme.nmap.org:22",
-      "location": "scanme.nmap.org"
-    }
-  ]
-}
+**Download report:**
+```bash
+GET http://moku-analyzer-url/scan/{job_id}/download?format=csv
+# Returns: CSV file for download
 ```
 
-Possible status values:
-| Status | Meaning |
-|---|---|
-| `pending` | Job created, not started yet |
-| `running` | Scan in progress |
-| `done` | Scan complete, results ready |
-| `failed` | Scan failed, check `error` field |
+## API Endpoints
 
----
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check + adapter list |
+| GET | `/adapters` | Available analyzers for UI |
+| GET | `/scans` | Scan history |
+| POST | `/scan` | Submit scan job (returns job_id) |
+| GET | `/scan/{id}` | Poll for results |
+| GET | `/scan/{id}/download` | Download report (CSV/TXT) |
 
-## Available Adapters
+## Available Analyzers
 
-| Adapter | Type | Requires | Description |
-|---|---|---|---|
-| `builtin` | Built-in | Nothing | Moku's own analyzer — XSS, SQLi, headers (Phase 2) |
-| `nuclei` | CLI tool | Nuclei installed | Template-based scanner, 9000+ vulnerability templates |
-| `nikto` | CLI tool | Nikto installed | Web server misconfiguration scanner |
-| `shodan` | API | SHODAN_API_KEY | Passive recon — open ports, services, known CVEs |
-| `virustotal` | API | VIRUSTOTAL_API_KEY | URL reputation — checks against 90+ security vendors |
-| `zap` | CLI tool | ZAP installed | OWASP ZAP active web vulnerability scanner |
-| `mock` | Test only | Nothing | Returns hardcoded findings — for development/testing |
+| Analyzer | Type | Requires | What It Does |
+|----------|------|----------|--------------|
+| builtin | Dynamic | Nothing | XSS, SQL injection, CSRF, headers checks |
+| nuclei | CLI | nuclei tool | 9000+ vulnerability templates |
+| nikto | CLI | nikto tool | Web server misconfigurations |
+| shodan | API | API key | Open ports, services, CVEs (passive) |
+| virustotal | API | API key | URL reputation (90+ vendors) |
+| zap | CLI | ZAP tool | Active web vulnerability scanner |
 
----
+## Adding Your Own Analyzer
 
-## How to Add a New Adapter
+Create a new adapter in 3 steps:
 
-Any vulnerability scanner can be added in 3 steps:
-
-**Step 1 — Create the adapter file** `app/adapters/myscanner_adapter.py`:
+**Step 1 — Create `app/adapters/myanalyzer_adapter.py`:**
 ```python
 from app.adapters.base import BaseAdapter
 from app.models.schemas import Vulnerability, Severity
 from typing import List
 
-class MyScannerAdapter(BaseAdapter):
-    name = "myscanner"
-    description = "My custom scanner"
+class MyAnalyzerAdapter(BaseAdapter):
+    name = "myanalyzer"
+    description = "My custom analyzer"
 
     def scan_url(self, url: str) -> List[Vulnerability]:
-        # run your scanner here
+        # Your scanning logic here
         return []
 
     def scan_html(self, html: str, source_url: str = "") -> List[Vulnerability]:
-        # run your scanner on HTML here
+        # Optional: scan raw HTML
         return []
 ```
 
-**Step 2 — Register it in `main.py`:**
+**Step 2 — Register in `main.py`:**
 ```python
-from app.adapters.myscanner_adapter import MyScannerAdapter
-registry.register(MyScannerAdapter())
+from app.adapters.myanalyzer_adapter import MyAnalyzerAdapter
+registry.register(MyAnalyzerAdapter())
 ```
 
-**Step 3 — It works immediately.** No other changes needed.
+**Step 3 — Done. It works immediately.**
 
----
+## Database
+
+All scans are stored in SQLite (`moku_analyzer.db`):
+
+- **scans table** — scan metadata, severity counts, timestamps
+- **vulnerabilities table** — individual findings with confidence scores
+
+Query anytime with `python scan.py --history` or via the API.
+
+## Testing
+
+Run all 44 tests:
+```bash
+python -m pytest tests/ -v
+```
 
 ## Development
 
-**Run with auto-reload** (for development — note: clears in-memory jobs on restart):
+**With auto-reload (clears jobs on restart):**
 ```bash
 python -m uvicorn main:app --reload --port 8080
 ```
 
-**Run stable** (for testing — jobs persist):
+**Production (persistent jobs):**
 ```bash
 python run.py
 ```
 
-**Interactive API docs** (Swagger UI):
-```
+**Interactive docs:**
 http://127.0.0.1:8080/docs
-```
-
----
 
 ## Phase Roadmap
 
-| Phase | Deadline | Status |
-|---|---|---|
-| Phase 1 — API contract, async job engine, plugin adapter system | April 2026 | ✅ Complete |
-| Phase 2 — Built-in vulnerability analyzer (XSS, SQLi, headers, open redirect) | May 2026 | 🔄 In progress |
+| Phase | Features | Deadline | Status |
+|-------|----------|----------|--------|
+| Phase 1 | FastAPI service, 6 adapters, async job engine, 44 tests | April 2026 | ✅ Complete |
+| Phase 2 | Built-in analyzer: XSS, SQLi, CSRF detection, plugins, evidence storage | May 2026 | ✅ Complete |
 
----
+## Related Projects
 
-## Related
+- [moku](https://github.com/Shaheer005/moku) — Main platform (Go)
+- [Nuclei](https://nuclei.projectdiscovery.io/) — Template scanner
+- [OWASP ZAP](https://www.zaproxy.org/) — Web app security scanner
+- [Shodan](https://www.shodan.io/) — Internet scan database
+- [VirusTotal](https://virustotal.com/) — Malware/URL reputation
 
-- [moku](https://github.com/Raysh454/moku) — the main platform this service integrates with
-- [Nuclei](https://github.com/projectdiscovery/nuclei) — fast vulnerability scanner
-- [Nikto](https://github.com/sullo/nikto) — web server scanner
-- [OWASP ZAP](https://www.zaproxy.org) — web application security scanner
-- [Shodan](https://shodan.io) — internet-wide scan database
-- [VirusTotal](https://virustotal.com) — malware and URL reputation service
+## License
+
+See LICENSE file.
+
+## Author
+
+**Shaheer Ahmed**  
+DHA Suffa University  
+Computer Science, Semester 8  
+2026
