@@ -4,10 +4,10 @@ Reports are downloaded from API, not saved to project folder.
 """
 import sys
 import time
-import uuid
 import requests
 import os
 from pathlib import Path
+from app.core.database import db
 
 API = "http://127.0.0.1:8080"
 DOWNLOADS_FOLDER = str(Path.home() / "Downloads")
@@ -15,7 +15,6 @@ DOWNLOADS_FOLDER = str(Path.home() / "Downloads")
 
 def scan(url, adapter="nuclei", cookies=None):
     """Run a scan and download report automatically."""
-    scan_id = str(uuid.uuid4())[:8]
     print(f"\n[*] Scanning: {url}")
     print(f"[*] Using:    {adapter}")
     if cookies:

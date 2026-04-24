@@ -31,7 +31,8 @@ async def submit_scan(request: ScanRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="html is required when method is 'html'")
 
     # Generate a unique job ID and create a job record
-    job_id = str(uuid.uuid4())
+    from app.core.database import db
+    job_id = db.get_next_scan_id()
     job_store.create(job_id)
 
     # Start the scan in the background so the API returns immediately
@@ -109,13 +110,13 @@ async def download_scan(job_id: str, format: str = "csv"):
         content = generator.generate_txt(scan, vulns)
         return {
             "content": content,
-            "filename": f"scan_{job_id}.txt",
+            "filename": f"{job_id}.txt",
             "format": "text/plain"
         }
     else:  # csv default
         content = generator.generate_csv(vulns)
         return {
             "content": content,
-            "filename": f"scan_{job_id}.csv",
+            "filename": f"{job_id}.csv",
             "format": "text/csv"
         }

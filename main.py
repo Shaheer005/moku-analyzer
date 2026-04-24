@@ -15,7 +15,6 @@ from app.adapters.registry import registry
 from app.adapters.builtin_adapter import BuiltinAdapter
 from app.adapters.nuclei_adapter import NucleiAdapter
 from app.adapters.nikto_adapter import NiktoAdapter
-from app.adapters.mock_adapter import MockAdapter
 from app.adapters.shodan_adapter import ShodanAdapter
 from app.adapters.virustotal_adapter import VirusTotalAdapter
 from app.adapters.zap_adapter import ZAPAdapter
@@ -35,7 +34,6 @@ app = FastAPI(
 registry.register(BuiltinAdapter())  # Basic placeholder adapter
 registry.register(NucleiAdapter())   # Nuclei vulnerability scanner
 registry.register(NiktoAdapter())    # Nikto web server scanner
-registry.register(MockAdapter())     # Mock adapter for testing
 registry.register(ShodanAdapter())   # Shodan passive reconnaissance
 registry.register(VirusTotalAdapter())  # VirusTotal URL reputation
 registry.register(ZAPAdapter())     # OWASP ZAP active scanner

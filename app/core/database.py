@@ -134,6 +134,16 @@ class Database:
         vulns = self.get_vulnerabilities(scan_id)
         return scan, vulns
 
+    def get_next_scan_id(self) -> str:
+        """Get the next sequential scan ID."""
+        conn = sqlite3.connect(self.db_file)
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM scans")
+        count = cursor.fetchone()[0]
+        conn.close()
+        scan_number = count + 1
+        return f"scan_{scan_number:05d}"  # scan_00001, scan_00002, etc
+
     def export_all_csv(self, filename: str = "all_scans_export.csv") -> str:
         """Export all scans to CSV."""
         import csv
