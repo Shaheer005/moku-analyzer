@@ -72,6 +72,26 @@ moku (Go client)
 ✅ **CLI Tool** — Simple one-command scanner from terminal  
 ✅ **44 Passing Tests** — Full test coverage  
 
+## Real-World Vulnerability Discoveries
+
+### Discovery 1: CSRF Vulnerability
+**Target:** daraz.pk/account/change-email  
+**Finding:** Cross-Site Request Forgery (CSRF) - No token validation  
+**Severity:** Medium (CVSS 6.5)  
+**Status:** Reported to Daraz & OpenBugBounty
+
+### Discovery 2: XSS-CSRF Vulnerability  
+**Target:** daraz.pk (all pages)  
+**Finding:** Missing SameSite Cookie Attribute  
+**Severity:** Medium (CVSS 6.5)  
+**Status:** Reported to Daraz & OpenBugBounty
+
+### Responsible Disclosure
+- Email sent to customer.pk@care.daraz.com
+- Submitted to OpenBugBounty for public tracking
+- Professional reports generated in DOCX format
+- Following 90-day disclosure timeline
+
 ## Project Structure
 
 ```
