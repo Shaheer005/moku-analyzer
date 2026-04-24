@@ -323,6 +323,4 @@ See LICENSE file.
 ## Author
 
 **Shaheer Ahmed**  
-DHA Suffa University  
-Computer Science, Semester 8  
 2026
