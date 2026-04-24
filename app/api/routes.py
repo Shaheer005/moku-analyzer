@@ -83,3 +83,39 @@ async def list_adapters():
         "status": "ok",
         "adapters": registry.available(),
     }
+
+
+@router.get("/scans")
+async def get_scans():
+    """Get all scan history."""
+    from app.core.database import db
+    scans = db.get_history()
+    return {"scans": scans}
+
+
+@router.get("/scan/{job_id}/download")
+async def download_scan(job_id: str, format: str = "csv"):
+    """Download scan report as CSV or TXT."""
+    from app.core.database import db
+    from app.core.report_generator import ReportGenerator
+
+    scan, vulns = db.get_scan_with_vulns(job_id)
+    if not scan:
+        raise HTTPException(status_code=404, detail="Scan not found")
+
+    generator = ReportGenerator(scan['url'], scan['adapter'], job_id)
+
+    if format.lower() == "txt":
+        content = generator.generate_txt(scan, vulns)
+        return {
+            "content": content,
+            "filename": f"scan_{job_id}.txt",
+            "format": "text/plain"
+        }
+    else:  # csv default
+        content = generator.generate_csv(vulns)
+        return {
+            "content": content,
+            "filename": f"scan_{job_id}.csv",
+            "format": "text/csv"
+        }

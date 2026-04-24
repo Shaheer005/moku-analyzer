@@ -1,0 +1,39 @@
+================================================================================
+VULNERABILITY SCAN REPORT
+================================================================================
+
+Target URL:     https://www.dsu.edu.pk
+Scanner:        mock
+Scan ID:        565626ad
+Scan Date:      2026-04-23 22:02:23
+Total Issues:   3
+
+
+HIGH SEVERITY (1 found)
+--------------------------------------------------------------------------------
+
+  Vulnerability: xss-reflected
+  Description:   Reflected XSS found in search parameter
+  Evidence:       ?q=<script>alert(1)</script>
+  Location:       https://www.dsu.edu.pk
+
+
+MEDIUM SEVERITY (1 found)
+--------------------------------------------------------------------------------
+
+  Vulnerability: missing-hsts
+  Description:   HTTP Strict Transport Security header not set
+  Location:       https://www.dsu.edu.pk
+
+
+INFO SEVERITY (1 found)
+--------------------------------------------------------------------------------
+
+  Vulnerability: server-version-disclosure
+  Description:   Server version exposed in response headers
+  Location:       https://www.dsu.edu.pk
+
+
+================================================================================
+END OF REPORT
+================================================================================

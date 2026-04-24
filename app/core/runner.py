@@ -47,6 +47,19 @@ def run_scan_job(job_id: str, request: ScanRequest) -> None:
         result.vulnerabilities = vulns
         result.status = ScanStatus.DONE
 
+        # Step 5: Save scan to database for later retrieval
+        if request.url and result.status == ScanStatus.DONE:
+            from app.core.database import db
+            from app.models.schemas import Vulnerability
+            # Convert vulnerability dicts to Vulnerability objects if needed
+            vuln_objs = []
+            for v in vulns:
+                if isinstance(v, dict):
+                    vuln_objs.append(Vulnerability(**v))
+                else:
+                    vuln_objs.append(v)
+            db.save_scan(job_id, request.url, adapter_name, vuln_objs)
+
     except KeyError as e:
         # Handle case where requested adapter doesn't exist
         result.status  = ScanStatus.FAILED
