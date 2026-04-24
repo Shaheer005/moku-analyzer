@@ -7,3 +7,7 @@ download.ps1
 tmp_verify_routes.py
 evidence/
 
+moku_analyzer.db
+node_modules/
+*.db
+

@@ -7,11 +7,14 @@ import time
 import requests
 import os
 from pathlib import Path
+from colorama import init, Fore, Back, Style
 from app.core.cli_display import (
     print_banner, print_menu, print_adapters, print_scanning,
     print_results, print_history_table, print_success,
     print_error, print_info, print_status, get_input
 )
+
+init(autoreset=True)
 
 API = "http://127.0.0.1:8080"
 DOWNLOADS_FOLDER = str(Path.home() / "Downloads")
